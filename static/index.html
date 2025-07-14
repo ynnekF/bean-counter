@@ -1,0 +1,619 @@
+<style>
+  .tab-btn {
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    border-bottom-width: 2px;
+    border-color: transparent;
+  }
+  .tab-btn-active {
+    color: #2563EB; /* tailwind `text-blue-600` */
+    border-color: #3b74ee;
+  }
+  .tab-btn:hover {
+    color: #2563EB;
+  }
+  .section {
+    width: 100%;                /* Ensure full width of container */
+    max-width: 6xl;             /* Optional: increase max width (e.g., 6xl or more) */
+    margin-left: auto;          /* Center horizontally */
+    margin-right: auto;         /* Center horizontally */
+    background-color: white;  /* bg-white */
+    border-radius: 1rem;        /* rounded-2xl */
+    padding: 1.5rem;            /* p-6 */
+    box-sizing: border-box;     /* Ensure padding doesn't exceed width */
+    overflow-x: auto;           /* Enable horizontal scroll if needed */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  /* Optional: add spacing between children (space-y-6 emulation) */
+  .section > * + * {
+    margin-top: 1.5rem; /* mt-6 */
+  }
+  .header {
+    font-size: 1.5rem;    /* text-2xl */
+    font-weight: 700;     /* font-bold */
+    line-height: 2rem;    /* leading-8 */
+  }
+  .table-header {
+    padding-left: 1rem;       /* px-4 */
+    padding-right: 1rem;      /* px-4 */
+    padding-bottom: 0.5rem;   /* pb-2 */
+    padding-top: 0.5rem;      /* py-2 */
+    color: #4b5563;         /* text-gray-600 */
+    font-weight: 600;         /* font-semibold */
+    letter-spacing: 0.05em;   /* tracking-wider */
+    border-right: 1px solid #e5e7eb; /* border-r + border-gray-200 */
+  }
+  .tooltip {
+    position: absolute;               /* absolute */
+    top: 100%;                        /* top-full */
+    left: 50%;                        /* left-1/2 */
+    transform: translateX(-50%);      /* -translate-x-1/2 */
+    margin-top: 0.25rem;              /* mt-1 */
+    width: max-content;               /* w-max */
+    padding: 0.25rem 0.5rem;          /* px-2 py-1 */
+    background-color: #1f2937;      /* bg-gray-800 */
+    color: white;                   /* text-white */
+    font-size: 0.875rem;              /* text-sm */
+    border-radius: 0.25rem;           /* rounded */
+    opacity: 0;                       /* opacity-0 */
+    z-index: 10;                      /* z-10 */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: opacity 0.2s ease-in-out; /* transition-opacity duration-200 */
+  }
+  .group:hover .tooltip {
+    opacity: 1; /* group-hover:opacity-100 */
+  }
+</style>
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Bean Counter</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gray-300 text-gray-800 p-0 m-0 font-mono min-h-screen">
+        <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-sm">
+            <div
+                class="max-w-6xl mx-auto flex items-center justify-between px-6 py-3">
+                <!-- Left: Logo / Title -->
+                <div class="flex items-center space-x-3">
+                    <span
+                        class="text-2xl font-serif font-bold text-gray-900 dark:text-white cursor-pointer select-none">
+                        Bean Counter
+                    </span>
+                </div>
+
+                <!-- Center: Search (optional, can remove if you want) -->
+                <div class="hidden md:flex flex-grow mx-6">
+                    <input
+                        type="search"
+                        placeholder="Search coffees, users, history..."
+                        class="w-full rounded-full border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 transition" />
+                </div>
+
+                <!-- Right: Nav Links & Buttons -->
+                <nav
+                    class="flex items-center space-x-6 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <a href="#" class="hover:underline">About</a>
+                    <a href="#" class="hover:underline">How It Works</a>
+                    <a href="https://github.com/ynnekF"
+                        class="hover:underline">GitHub</a>
+                    <button
+                        class="ml-4 px-4 py-1 border border-amber-600 text-amber-600 rounded hover:bg-amber-600 hover:text-white transition">
+                        Sign In
+                    </button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Tabs -->
+        <div
+            class="mx-auto mb-4 bg-gray-400 top-0 z-50 shadow-md select-none rounded">
+            <div class="flex justify-center border-b border-gray-300">
+                <button class="tab-btn" data-tab="balances">Home</button>
+                <button class="tab-btn" data-tab="addUser">Users</button>
+                <button class="tab-btn" data-tab="ledger">History</button>
+            </div>
+        </div>
+        <!-- Show Balances and Who Pays Next: This section displays the balances of all users and allows checking who pays next.-->
+        <div id="tab-balances" class="tab-content m-3 p-3">
+            <div class="section max-w-8xl">
+                <!-- Header + Button  -->
+                <h1 class="header">Who Pays Next?</h1>
+                <p class="text-sm text-gray-600 mb-4 max-w-prose">
+                    This section enables you to view user balances and determine
+                    who should pay next.
+                    Click the button below to calculate who pays next based on
+                    current balances.
+                    The user with the lowest balance will be selected.
+                </p>
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="relative group inline-block">
+                        <button onclick="fetchWhoPays()"
+                            class="relative flex items-center gap-2 px-8 py-3 font-semibold text-white rounded-lg bg-amber-600 hover:bg-amber-700 transition duration-300 shadow-lg focus:outline-none focus:ring-4 focus:ring-amber-400">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="h-5 w-5 animate-bounce" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor"
+                                stroke-width="2">
+                                <path stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M12 4v16m8-8H4" />
+                            </svg>
+                            Compute
+                        </button>
+                    </div>
+                    <div class="relative group inline-block">
+                        <button id="confirmRunBtn"
+                            class="hidden relative flex items-center gap-2 px-8 py-3 font-semibold text-white rounded-lg bg-indigo-600 hover:bg-indigo-700 transition duration-300 shadow-lg focus:outline-none focus:ring-4 focus:ring-amber-400">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="h-5 w-5 animate-bounce" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor"
+                                stroke-width="2">
+                                <path stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M12 4v16m8-8H4" />
+                            </svg>
+                            Confirm
+                        </button>
+                        <!-- <button id="confirmRunBtn" class="bg-indigo-500 text-white px-4 py-2 hover:bg-indigo-600 hidden">Confirm</button> -->
+                        <div class="tooltip">
+                            Click to process a coffee run
+                        </div>
+                    </div>
+                </div>
+                <!-- Result -->
+                <div id="result"
+                    class="text-blue-900 font-semibold rounded-lg"></div>
+                <hr />
+                <!-- Balances Table -->
+                <div class="overflow-hidden shadow border border-gray-300">
+                    <table
+                        class="w-full text-left border border-collapse font-mono text-sm text-gray-800">
+                        <thead
+                            class="text-left bg-gray-100 border-b border-gray-300 divide-x divide-gray-200">
+                            <tr class="divide-x divide-gray-300">
+                                <th class="table-header">ID</th>
+                                <th class="table-header">First</th>
+                                <th class="table-header">Last</th>
+                                <th class="table-header">Paid</th>
+                                <th class="table-header">Consumed</th>
+                                <th class="table-header">Balance</th>
+                                <th class="table-header">Options</th>
+                            </tr>
+                        </thead>
+                        <tbody id="balances"
+                            class="bg-white divide-y divide-gray-200 divide-x divide-gray-300">
+                            <!-- Rows inserted dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Current Day -->
+                <p class="text-sm">
+                    <span id="currentDay"><strong>Current Day:</strong></span>
+                </p>
+                <div id="runForm" class="mt-4 space-y-2 hidden">
+                    <hr />
+                    <h2 class="text-lg font-semibold">Confirmation Form:</h2>
+                    <p class="text-sm text-gray-600 mb-4">
+                        Use this form to confirm the cost of today's coffee run
+                        per person, and select who will pay.
+                    </p>
+                    <form id="coffeeRunForm" class="space-y-2">
+                        <button type="submit">Submit Coffee Run</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- User Form: This section allows one to create new users -->
+        <div id="tab-addUser" class="tab-content hidden">
+            <div class="section max-w-6xl">
+                <h2 class="header mb-2">Add User</h2>
+                <form id="addUserForm" class="space-y-2">
+                    <input type="text" id="firstName" placeholder="First Name"
+                        required class="border rounded px-2 py-1 w-full" />
+                    <input type="text" id="lastName" placeholder="Last Name"
+                        required class="border rounded px-2 py-1 w-full" />
+                    <input type="number" min="0" step="0.01" id="paid"
+                        placeholder="Paid"
+                        class="border rounded px-2 py-1 w-full" />
+                    <input type="number" min="0" step="0.01" id="consumed"
+                        placeholder="Consumed"
+                        class="border rounded px-2 py-1 w-full" />
+                    <input type="number" min="0" step="0.01" id="orderCost"
+                        placeholder="Order Cost"
+                        class="border rounded px-2 py-1 w-full" />
+                    <input type="text" id="orderDesc"
+                        placeholder="Order Description"
+                        class="border rounded px-2 py-1 w-full" />
+                    <button type="submit"
+                        class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add
+                        User</button>
+                </form>
+            </div>
+        </div>
+        <!-- Ledger: This section displays the ledger of coffee runs. -->
+        <div id="tab-ledger" class="tab-content hidden">
+            <div class="section max-w-6xl">
+                <h2 class="header">Ledger</h2>
+                <p class="text-sm text-gray-600 mb-4 max-w-prose">
+                    This section enables you to view history on a per-day basis.
+                    In reality, this would be implemented
+                    within a database or a commit log like Kafka in order to
+                    store and access immutable records of runs.
+                </p>
+                <div class="relative inline-block text-left">
+                    <button id="downloadDropdownBtn" type="button"
+                        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 inline-flex items-center">
+                        Download As
+                        <svg class="ml-2 w-4 h-4"
+                            xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 20 20" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M7 7l3-3 3 3m0 6l-3 3-3-3" />
+                        </svg>
+                    </button>
+                    <!-- Dropdown menu -->
+                    <div id="downloadDropdownMenu"
+                        class="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg hidden z-50">
+                        <ul
+                            class="py-1 text-sm text-gray-700 dark:text-gray-200">
+                            <li><a href="#"
+                                    class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">CSV</a></li>
+                            <li><a href="#"
+                                    class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">JSON</a></li>
+                            <li><a href="#"
+                                    class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">PDF</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table
+                        class="w-full text-left border-collapse border border-gray-300 font-mono text-sm">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="table-header">ID</th>
+                                <th class="table-header">Day</th>
+                                <th class="table-header">Payer ID</th>
+                                <th class="table-header">Name</th>
+                                <th class="table-header">Total Cost</th>
+                                <th class="table-header">Orders</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ledger"
+                            class="bg-white divide-y divide-gray-100">
+                            <!-- Rows inserted by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <footer
+            class="mt-12 border-t border-gray-300 dark:border-gray-700 pt-6 pb-4 text-sm text-gray-600 dark:text-gray-400">
+            <div
+                class="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <p>Helping teams keep coffee costs fair, one cup at a
+                        time.</p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#"
+                        class="hover:text-black dark:hover:text-white underline">About</a>
+                    <a href="#"
+                        class="hover:text-black dark:hover:text-white underline">How
+                        It Works</a>
+                    <a href="#"
+                        class="hover:text-black dark:hover:text-white underline">GitHub</a>
+                </div>
+            </div>
+            <div
+                class="text-center mt-6 text-xs text-gray-500 dark:text-gray-600">
+                © 2025 Bean Counter. All rights reserved.
+            </div>
+        </footer>
+
+        <script>
+            let nextPayerId = null;
+
+            document.addEventListener("DOMContentLoaded", () => {
+                const btn = document.getElementById("downloadDropdownBtn");
+                const menu = document.getElementById("downloadDropdownMenu");
+
+                btn.addEventListener("click", (e) => {
+                    e.stopPropagation(); // Prevent click from bubbling
+                    menu.classList.toggle("hidden");
+                });
+
+                // Hide dropdown if clicked outside
+                document.addEventListener("click", () => {
+                    menu.classList.add("hidden");
+                });
+            });
+
+            // This script handles tab switching and content display
+            // It uses event delegation to manage clicks on tab buttons
+            document.querySelectorAll('.tab-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const tab = button.getAttribute('data-tab');
+                    // Show the selected tab content
+                    document.querySelectorAll('.tab-content').forEach(tc => {
+                        tc.classList.toggle('hidden', !tc.id.includes(tab));
+                    });
+                    // Update button styles
+                    document.querySelectorAll('.tab-btn').forEach(b => {
+                        b.classList.remove('border-blue-600', 'text-blue-600', 'active-tab');
+                        b.classList.add('text-gray-600');
+                    });
+                    button.classList.add('border-blue-600', 'text-blue-600', 'active-tab');
+                    if (tab === "ledger") getLedger();
+                });
+            });
+
+            // This script handles the form submission for adding a new user
+            // It validates the input fields and sends a POST request to the server
+            document.getElementById("addUserForm").addEventListener("submit", async function (e) {
+                e.preventDefault();
+
+                // Access input fields mapping to the User type.
+                const firstName = document.getElementById("firstName").value.trim();
+                const lastName = document.getElementById("lastName").value.trim();
+                const orderDesc = document.getElementById("orderDesc").value.trim();
+                const orderCost = document.getElementById("orderCost").value.trim();
+                const consumed = document.getElementById("consumed").value.trim();
+                const paid = document.getElementById("paid").value.trim();
+
+                // Ensure the name fields are provided and valid
+                if (!firstName || !lastName) {
+                    alert("Please enter all required fields.");
+                    return;
+                }
+
+                // Ensure names contain only letters
+                if (!/^[a-zA-Z]+$/.test(firstName) || !/^[a-zA-Z]+$/.test(lastName)) {
+                    alert("First and last names must contain only letters.");
+                    return;
+                }
+                
+                // Ensure numeric fields are valid
+                if (isNaN(paid) || isNaN(consumed) || isNaN(orderCost)) {
+                    alert("Paid, consumed, and order cost must be valid numbers.");
+                    return;
+                }
+
+                // Ensure input lengths are within limits
+                if (firstName.length > 50 || lastName.length > 50 ||
+                   orderDesc.length > 100 || orderCost.length > 20 ||
+                   consumed.length > 20 || paid.length > 20 ||
+                   orderDesc.length > 100) {
+                    alert("Input fields exceed maximum length.");
+                    return;
+                }
+
+                const fieldsToValidate = [
+                    { name: "paid", value: paid, label: "Paid amount" },
+                    { name: "consumed", value: consumed, label: "Consumed amount" },
+                    { name: "orderCost", value: orderCost, label: "Order cost" }
+                ];
+
+                for (const field of fieldsToValidate) {
+                    const num = parseFloat(field.value);
+                    if (field.value && num < 0) {
+                        alert(`${field.label} cannot be negative.`);
+                        return;
+                    }
+                }
+
+                const newUser = {
+                    firstName,
+                    lastName,
+                    paid: paid ? parseFloat(paid) : 0,
+                    consumed: consumed ? parseFloat(consumed) : 0,
+                    orderDesc: orderDesc,
+                    orderCost: orderCost ? parseFloat(orderCost) : 0,
+                };
+                try {
+                    const res = await fetch("/api/add-user", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify(newUser)
+                    });
+            
+                    if (!res.ok) throw new Error("Failed to add user.");
+            
+                    // Reset form and refresh balances
+                    document.getElementById("addUserForm").reset();
+                    loadBalances();
+                } catch (err) {
+                    console.error(err);
+                    alert("Error adding user.");
+                }
+            });
+            
+            // This script handles the coffee run confirmation and populates the form with user balances
+            // It fetches the user balances and allows entering costs for each user manually
+            document.getElementById("confirmRunBtn").addEventListener("click", async () => {
+                const res = await fetch("/api/balances");
+                const users = await res.json();
+                const form = document.getElementById("coffeeRunForm");
+
+                form.innerHTML = Object.values(users).map(u => {
+                    const isPayer = u.id === nextPayerId;
+                    return `
+                        <div class="flex items-center gap-4">
+                        <input
+                            title="Override to make this person pay"
+                            type="radio"
+                            name="selectedPayer"
+                            value="${u.id}"
+                            ${isPayer ? "checked" : ""}
+                            class="accent-green-600"
+                        />
+                        <label class="w-48">${u.firstName} ${u.lastName}</label>
+                        $<input
+                            type="number"
+                            step="0.01"
+                            name="${u.id}"
+                            value="${u.orderCost || ''}"
+                            class="border px-2 py-1 w-24"
+                            required
+                        />
+                        </div>
+                    `;
+                    }).join("");
+
+                    form.innerHTML += `
+                    <button type="submit" class="bg-green-600 text-white px-4 py-2 hover:bg-green-700">
+                        Submit Coffee Run
+                    </button>
+                    `;
+                document.getElementById("runForm").classList.remove("hidden");
+            });
+
+            document.getElementById("coffeeRunForm").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                let payerId = null;
+                const formData = new FormData(e.target);
+                const orders = {};
+                for (const [key, value] of formData.entries()) {
+                    if (key === "selectedPayer") {
+                        payerId = parseInt(value);
+                    } else {
+                        orders[parseInt(key)] = parseFloat(value);
+                    }
+                }
+                console.log("Orders:", orders);
+                const res = await fetch("/api/coffee-run", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                    payerId: payerId,
+                    orders
+                    })
+                });
+                if (res.ok) {
+                    alert("Coffee run recorded!");
+                    loadBalances();
+                    document.getElementById("runForm").classList.add("hidden");
+                    document.getElementById("confirmRunBtn").classList.add("hidden");
+                    document.getElementById("result").textContent = "";
+                } else {
+                    alert("Failed to record coffee run.");
+                }
+            });
+
+            async function getDay() {
+                const res = await fetch("/api/current-day");
+                if (!res.ok) {
+                    console.error("Failed to fetch current day");
+                    return;
+                }
+                const data = await res.json();
+                document.getElementById("currentDay").textContent = `Current Day: ${data.currentDay}`;
+            }
+
+            async function resetUser(id) {
+                if (confirm("Reset this user's Paid and Consumed values?")) {
+                    const res = await fetch(`/api/reset-user?id=${encodeURIComponent(id)}`, { method: "POST" });
+                    if (res.ok) {
+                        loadBalances();
+                    } else {
+                        alert("Failed to reset user.");
+                    }
+                }
+            }
+            async function updateUserField(id, field, value) {
+                // Remove $ if present and trim
+                const cleanedValue = value.replace(/^\$/, "").trim();
+
+                try {
+                    const res = await fetch("/api/update-user-field", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id, field, value: cleanedValue })
+                    });
+
+                    if (!res.ok) {
+                        const err = await res.json();
+                        alert(`Failed to update user: ${err.error}`);
+                    } else {
+                        console.log(`Updated ${field} for user ${id}`);
+                    }
+                } catch (err) {
+                    console.error("Update error:", err);
+                    alert("Error updating field");
+                }
+                loadBalances();
+            }
+            async function loadBalances() {
+                const res = await fetch("/api/balances");
+                const users = await res.json();
+                const tbody = document.getElementById("balances");
+
+                console.log("Loaded users:", users);
+                tbody.innerHTML = Object.values(users).map(u => `
+                    <tr class="border-t divide-y divide-gray-200 hover:bg-blue-50 transition-colors duration-150 divide-x divide-gray-300">
+                        <td class="px-1">${u.id}</td>
+                        <td contenteditable="true" onblur="updateUserField(${u.id}, 'firstName', this.innerText)" class="px-1">${u.firstName}</td>
+                        <td contenteditable="true" onblur="updateUserField(${u.id}, 'lastName', this.innerText)" class="px-1">${u.lastName}</td>
+                        <td contenteditable="true" onblur="updateUserField(${u.id}, 'paid', this.innerText)" class="px-1">$${u.paid.toFixed(2)}</td>
+                        <td contenteditable="true" onblur="updateUserField(${u.id}, 'consumed', this.innerText)" class="px-1">$${u.consumed.toFixed(2)}</td>
+                        <td class="px-1">$${(u.paid - u.consumed).toFixed(2)}</td>
+                        <td class="space-x-2">
+                            <button onclick="confirmDelete('${u.firstName}', '${u.lastName}', ${u.id})"
+                                class="text-red-500 hover:text-red-700 font-bold">🗑️</button>
+                            <button onclick="resetUser(${u.id})"
+                                class="text-yellow-600 hover:text-yellow-800 font-bold">🔄</button>
+                        </td>
+                    </tr>
+                `).join('');
+                getDay();
+            }
+            async function fetchWhoPays() {
+                console.log("Fetching who pays next...");
+                const res = await fetch("/api/who-pays-next");
+                const data = await res.json();
+                document.getElementById("result").textContent =
+                    `> ${data.firstName} ${data.lastName} should pay next (balance: $${data.balance.toFixed(2)})`;
+                
+                // Set next playerID
+                nextPayerId = data.userId;
+                console.log("nextPayerId set to:", nextPayerId);
+                
+                // Show confirm button
+                document.getElementById("confirmRunBtn").classList.remove("hidden");
+            }
+
+            async function confirmDelete(firstName, lastName, id) {
+                if (confirm(`Do you want to remove user ${firstName} ${lastName}?`)) {
+                    await fetch(`/api/delete-user?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+                    loadBalances();
+                }
+            }
+
+            async function getLedger() {
+                const res = await fetch("/api/ledger");
+                const data = await res.json();
+                const tbody = document.getElementById("ledger");
+                tbody.innerHTML = data.map(entry => `
+                    <tr class="border-t divide-y divide-gray-200 hover:bg-blue-50 transition-colors duration-150 divide-x divide-gray-300">
+                        <td class="px-1">${entry.id}</td>
+                        <td class="px-1">${entry.day}</td>
+                        <td class="px-1">${entry.payerId}</td>
+                        <td class="px-1">${entry.payerName}</td>
+                        <td class="px-1">$${entry.totalCost.toFixed(2)}</td>
+                        <td class="px-1">
+                            ${entry.orders ? Object.entries(entry.orders)
+                                .map(([id, cost]) => `User ${id}: $${parseFloat(cost).toFixed(2)}`)
+                                .join("<br>") : "No orders"}
+                        </td>
+                    </tr>
+                `).join('');
+            }
+            loadBalances();
+        </script>
+    </body>
+</html>
