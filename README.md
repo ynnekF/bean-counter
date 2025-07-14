@@ -5,26 +5,52 @@ A simple tool that helps teams share the cost of daily coffee runs fairly by rec
 
 The **Net Cost Balancing Algorithm** used to ensure long term "fairness" is a version of running balance model.
 
+<img src="img/home.png" alt="Home Screen"/>
+<br /><br />
+
+
+## Getting Started
+```
+bean-counter/
+├── cmd/
+│   └── main.go          # Entry point for Go backend
+├── static/
+│   ├── index.html       # Main frontend file
+│   └── ...              # JS, images, etc.
+├── Makefile             # Build & run commands
+├── go.mod / go.sum      # Go modules and dependencies
+└── README.md
+```
+
 **Requirements**
 - Modern Web Browser (Chrome, Firefox, etc.)
-- Internet access for Tailwind CDN
 - Go 1.22.0 or later
   - [Gin Web Framework](https://github.com/gin-gonic/gin)
+  - Go modules enabled via `go.mod`
+  - `Gin.Static()` to serve assets
 - HTML5
-- [Tailwind CSS](https://tailwindcss.com/)
+- Internet access for Tailwind CDN in `index.html`
+  - [Tailwind CSS](https://tailwindcss.com/)
   - Included via CDN for lightweight usage
   - Custom styles added via `<style>` block inside `index.html`
+- Make
 
-TODO
-- paginate tables if they get too big
-- overflow support
+```
+// Install Go dependencies
+go mod tidy
 
-Evaluation
-- Fairness logic/algorithm
-- Interface design
-- Code quality
-- Testing
-- Tooling/design choices
+// Run the app
+make run
+
+// If not using Make
+go run cmd/main.go 
+
+// (Optional) Build/Clean
+make build
+make clean
+```
+
+After running the app, it will be served at http://localhost:8080/app
 
 ### Functional Requirements
 The primary goal is to create software that provides **net cost balancing** among a group of people. 
@@ -85,3 +111,23 @@ POST /coffeeRun
 - No external data source means this isn't entirely scalable
 - No commit log or immutable ordering of events for the "ledger"
 - Missing tests
+- No concept of actual dates just an incremental integer
+
+### How to use?
+On startup the service has a few profiles pre-loaded for convenience. To add a new user, navigate to the "Users" tab and fill out the form with the profile details.
+
+<img src="img/users.png" alt="Users Tab">
+
+After the necessary users have been added you can navigate back to the Home tab and click compute.
+This will prompt you with the system's choice of profile for who should pay next.
+
+<img src="img/compute.png" alt="Compute Button">
+
+Then, a user can select "Confirm", which then prompts them to fill out a confirmation form with each user's
+drink cost that day and an radio button to override who is paying. 
+
+<img src="img/confirmation.png" alt="Confirmation Form">
+
+Finally, one can navigate to the "History" tab to view a ledger that stores each day's coffee run details
+
+<img src="img/ledger.png" alt="Ledger/History">
