@@ -131,3 +131,6 @@ drink cost that day and an radio button to override who is paying.
 Finally, one can navigate to the "History" tab to view a ledger that stores each day's coffee run details
 
 <img src="img/ledger.png" alt="Ledger/History">
+
+Users can be removed via the trashcan icon within the table in the Home tab.
+User's names, paid and consumed values can be edited in-line within the table.
