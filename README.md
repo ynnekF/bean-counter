@@ -36,6 +36,10 @@ bean-counter/
 - Make
 
 ```
+// Clone repository
+git clone https://github.com/ynnekF/bean-counter.git
+cd bean-counter
+
 // Install Go dependencies
 go mod tidy
 
@@ -71,6 +75,7 @@ Idea is to track team members, their choice of beverage and it's respective cost
 - Data can be exported to a CSV
 - Cloud deployments
 - Ability to search for coffee, users, payment history, etc.
+- Docker/Kubernetes support
 
 ### Non-Functional Requirements
 - Consistency >> Availability
